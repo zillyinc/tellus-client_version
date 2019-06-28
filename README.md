@@ -1,8 +1,6 @@
 # Tellus::ClientVersion
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/tellus/client_version`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Utility to parse and store client version strings from request headers, e.g. `X-Zilly-iOS-Version: 1.0.0`.
 
 ## Installation
 
@@ -12,24 +10,16 @@ Add this line to your application's Gemfile:
 gem 'tellus-client_version'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install tellus-client_version
-
 ## Usage
 
-TODO: Write usage instructions here
+Get the current client version:
 
-## Development
+```ruby
+Tellus::ClientVersion.current
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Populate `RequestStore` with the client version information given a Rack request:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/tellus-client_version.
+```ruby
+Tellus::ClientVersion.set_from_request(request)
+```
