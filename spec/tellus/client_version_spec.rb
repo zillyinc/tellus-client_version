@@ -146,4 +146,20 @@ RSpec.describe Tellus::ClientVersion do
       end
     end
   end
+
+  context 'with prefixed version number' do
+    let(:client_version) { 'v1.2.3' }
+    let(:platform) { :ios }
+    let(:app) { :zilly }
+    subject { described_class.new(platform, app) }
+
+    before { described_class.set platform, app, client_version }
+    after { RequestStore.clear! }
+
+    describe '#lt?' do
+      context 'when checked version is a patch version less' do
+        it { expect(subject.lt? '1.2.2').to be false }
+      end
+    end
+  end
 end
