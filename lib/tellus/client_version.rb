@@ -99,13 +99,32 @@ module Tellus
       end
     end
 
+    def self.cleanup_version_str(version)
+      cleanup_regex = /[[:alpha:]](\d)/
+      version.gsub(cleanup_regex, '\1')
+    end
+
     private
 
     def version_object_for(version)
       return nil if version.blank?
       return version if version.is_a? Gem::Version
 
-      Gem::Version.new(version)
+      if Gem::Version.correct? version
+        Gem::Version.new(version)
+      elsif version.is_a? String
+        fixed_version = self.class.cleanup_version_str(version)
+        unless Gem::Version.correct? fixed_version
+          msg = "Malformed version number string" \
+                " #{fixed_version} (from #{version})"
+          raise ArgumentError, msg
+        end
+        Gem::Version.new(fixed_version)
+      else
+        # NOTE(dmr, 2019-08-16): this should raise ArgumentError, but
+        # that's all we were going to do here anyway
+        Gem::Version.new(version)
+      end
     end
 
     def version_object
