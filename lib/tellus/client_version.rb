@@ -111,19 +111,17 @@ module Tellus
       return version if version.is_a? Gem::Version
 
       if Gem::Version.correct? version
-        Gem::Version.new(version)
-      elsif version.is_a? String
-        fixed_version = self.class.cleanup_version_str(version)
-        unless Gem::Version.correct? fixed_version
-          msg = "Malformed version number string" \
-                " #{fixed_version} (from #{version})"
-          raise ArgumentError, msg
-        end
+        return Gem::Version.new(version)
+      end
+
+      fixed_version = self.class.cleanup_version_str(version.to_s)
+
+      if Gem::Version.correct? fixed_version
         Gem::Version.new(fixed_version)
       else
-        # NOTE(dmr, 2019-08-16): this should raise ArgumentError, but
-        # that's all we were going to do here anyway
-        Gem::Version.new(version)
+        msg = "Malformed version number string" \
+              " #{fixed_version} (from #{version})"
+        raise ArgumentError, msg
       end
     end
 
