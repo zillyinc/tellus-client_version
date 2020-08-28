@@ -6,95 +6,64 @@ require 'request_store'
 module Tellus
   # Encapsulates a platform and version for clients of the Tellus API.
   class ClientVersion
-    APP_HEADERS = {
-      zilly: {
-        ios:            'X-Zilly-Ios-Version',
-        android:        'X-Zilly-Android-Version',
-        web:            'X-Zilly-Web-Version',
-        chrome_wo:      'X-Zilly-Chrome-Wo-Version', # Chrome extension for work orders
-        resource_guide: 'X-Zilly-Resource-Guide-Version', # resource guides
-      },
+    VERSION_HEADERS = {
+      ios:            'X-Zilly-Ios-Version',
+      android:        'X-Zilly-Android-Version',
+      web:            'X-Zilly-Web-Version'
     }.freeze
 
-    attr_reader :version_string, :platform, :app
+    attr_reader :version_string, :app
 
-    def initialize(platform = :ios, app = :zilly)
-      @platform = platform
-      @app = app
-      @version_string = self.class.get(platform, app)
+    def initialize(platform, version = nil)
+      @platform = platform.presence || self.class.get(:platform)
+      @version_string = version.presence || self.class.get(:version)
     end
 
-    def lt?(version)
-      return false if blank?
-
-      version_object < version_object_for(version)
+    def self.from_friendly_version_str(version_str)
+      version_str = version_str.split(' ')
+      platform = version_str[1]
+      version = version_str[2]
+      new(platform, version)
     end
 
-    def lte?(version)
-      return false if blank?
+    def lt?(platform, version)
+      return false if blank? || version.blank? || platform.blank?
 
-      version_object <= version_object_for(version)
-    end
-
-    def matches?(version_requirement_string)
-      Gem::Requirement.new(version_requirement_string) =~ version_object
-    end
-
-    def friendly_str
-      "#{app.to_s.titleize} #{platform.to_s.titleize} #{version_string}"
+      platform == @platform && version_object < version_object_for(version)
     end
 
     delegate :blank?, :to_s, :present?, to: :version_string
-
-    # returns a list of ClientVersion instances for every platform for the given app
-    # can be used to check e.g. which app the current request is for regardless of platform
-    def self.all_for_app(app = :zilly)
-      APP_HEADERS.fetch(app, {}).keys.map do |platform|
-        ClientVersion.new(platform, app)
-      end
-    end
-
-    def self.app
-      current&.app
-    end
 
     def self.platform
       current&.platform
     end
 
     def self.version
-      current&.version_string&.to_s
+      current&.version_string
     end
 
     # returns ClientVersion instance with platform and app for the current request
     def self.current
-      APP_HEADERS.each do |app, platforms|
-        platforms.each do |platform, _|
-          return new(platform, app) if get(platform, app).present?
-        end
+      VERSION_HEADERS.each do |platform, _|
+        return new(platform) if get(:platform) == platform
       end
 
       nil
     end
 
-    def self.get(platform = :ios, app = :zilly)
-      RequestStore.store[key(platform, app)].presence
+    def self.get(key)
+      RequestStore.store[key].presence
     end
 
-    def self.set(platform, app, version)
-      RequestStore.store[key(platform, app)] = version.to_s
-    end
-
-    def self.key(platform, app)
-      "#{platform}_#{app}_version".to_sym
+    def self.set(key, value)
+      RequestStore.store[key] = value&.to_sym
     end
 
     def self.set_from_request(request)
-      APP_HEADERS.each do |app, platforms|
-        platforms.each do |platform, header|
-          if (version = request.headers[header]).present?
-            set platform, app, version
-          end
+      VERSION_HEADERS.each do |platform, header|
+        if (version = request.headers[header]).present?
+          set(:platform, platform)
+          set(:version, version)
         end
       end
     end
@@ -110,9 +79,7 @@ module Tellus
       return nil if version.blank?
       return version if version.is_a? Gem::Version
 
-      if Gem::Version.correct? version
-        return Gem::Version.new(version)
-      end
+      return Gem::Version.new(version) if Gem::Version.correct? version
 
       fixed_version = self.class.cleanup_version_str(version.to_s)
 
