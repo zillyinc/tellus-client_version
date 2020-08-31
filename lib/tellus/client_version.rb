@@ -37,7 +37,7 @@ module Tellus
     end
 
     def friendly_str
-      "Zilly #{platform.to_s.titleize} #{version_string}"
+      "Zilly #{@platform.to_s.titleize} #{version_string}"
     end
 
     delegate :blank?, :to_s, :present?, to: :version_string
