@@ -21,7 +21,7 @@ module Tellus
 
     def self.from_friendly_version_str(version_str)
       version_str = version_str.split(' ')
-      platform = version_str[1]
+      platform = version_str[1].downcase.to_sym
       version = version_str[2]
       new(platform, version)
     end
