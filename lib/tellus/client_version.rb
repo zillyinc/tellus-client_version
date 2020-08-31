@@ -32,6 +32,14 @@ module Tellus
       platform == @platform && version_object < version_object_for(version)
     end
 
+    def matches?(version_requirement_string)
+      Gem::Requirement.new(version_requirement_string) =~ version_object
+    end
+
+    def friendly_str
+      "Zilly #{platform.to_s.titleize} #{version_string}"
+    end
+
     delegate :blank?, :to_s, :present?, to: :version_string
 
     def self.platform
