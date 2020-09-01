@@ -12,24 +12,28 @@ module Tellus
       web:            'X-Zilly-Web-Version'
     }.freeze
 
-    attr_reader :version_string, :app
+    attr_reader :platform, :version
 
-    def initialize(platform, version = nil)
+    def initialize(platform = nil, version = nil)
       @platform = platform.presence || self.class.get(:platform)
-      @version_string = version.presence || self.class.get(:version)
+      @version = version.presence || self.class.get(:version)
     end
 
     def self.from_friendly_version_str(version_str)
+      return new unless version_str.present?
+
       version_str = version_str.split(' ')
+      return new unless version_str.length == 3
+
       platform = version_str[1].downcase.to_sym
       version = version_str[2]
       new(platform, version)
     end
 
-    def lt?(platform, version)
-      return false if blank? || version.blank? || platform.blank?
+    def lt?(plat, ver)
+      return false if blank? || ver.blank? || plat.blank?
 
-      platform == @platform && version_object < version_object_for(version)
+      plat == @platform && version_object < version_object_for(ver)
     end
 
     def matches?(version_requirement_string)
@@ -37,17 +41,17 @@ module Tellus
     end
 
     def friendly_str
-      "Zilly #{@platform.to_s.titleize} #{version_string}"
+      "Zilly #{platform.to_s.capitalize} #{version}"
     end
 
-    delegate :blank?, :to_s, :present?, to: :version_string
+    delegate :blank?, :to_s, :present?, to: :version
 
     def self.platform
       current&.platform
     end
 
     def self.version
-      current&.version_string
+      current&.version
     end
 
     # returns ClientVersion instance with platform and app for the current request
@@ -101,7 +105,7 @@ module Tellus
     end
 
     def version_object
-      @version_object ||= version_object_for(version_string)
+      @version_object ||= version_object_for(version)
     end
   end
 end

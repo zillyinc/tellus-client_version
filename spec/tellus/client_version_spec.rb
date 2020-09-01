@@ -48,6 +48,12 @@ RSpec.describe Tellus::ClientVersion do
       context 'when checked version a major version more' do
         it { expect(subject.lt?(platform, '2.0.0')).to be true }
       end
+
+      context 'when nil' do
+        subject { described_class.new }
+
+        it { expect(subject.lt?(platform, '2.0.0')).to be true }
+      end
     end
 
     describe '#present?' do
@@ -123,6 +129,29 @@ RSpec.describe Tellus::ClientVersion do
       context 'when checked version is a patch version less' do
         it { expect(subject.lt?(platform, '1.2.2')).to be false }
       end
+    end
+  end
+
+  describe '.from_friendly_version_str' do
+    subject(:parsed) { described_class.from_friendly_version_str(version_string) }
+
+    let(:version_string) { 'Zilly Ios 1.2.3' }
+
+    it { expect(parsed.platform).to eq :ios }
+    it { expect(parsed.version).to eq '1.2.3' }
+
+    context 'with invalid string' do
+      let(:version_string) { 'foo' }
+
+      it { expect(parsed.platform).to eq nil }
+      it { expect(parsed.version).to eq nil }
+    end
+
+    context 'with nil' do
+      let(:version_string) { nil }
+
+      it { expect(parsed.platform).to eq nil }
+      it { expect(parsed.version).to eq nil }
     end
   end
 end
