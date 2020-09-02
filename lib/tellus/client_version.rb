@@ -60,7 +60,7 @@ module Tellus
         return new(platform) if get(:platform) == platform
       end
 
-      nil
+      new
     end
 
     def self.get(key)
