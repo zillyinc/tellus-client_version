@@ -1,4 +1,3 @@
-require "bundler/setup"
 require "tellus/client_version"
 
 RSpec.configure do |config|

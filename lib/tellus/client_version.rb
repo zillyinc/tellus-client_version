@@ -9,7 +9,8 @@ module Tellus
     VERSION_HEADERS = {
       ios:            'X-Zilly-Ios-Version',
       android:        'X-Zilly-Android-Version',
-      web:            'X-Zilly-Web-Version'
+      web:            'X-Zilly-Web-Version',
+      web_app:        'X-Zilly-WebApp-Version'
     }.freeze
 
     attr_reader :platform, :version
